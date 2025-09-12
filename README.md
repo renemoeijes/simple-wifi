@@ -21,7 +21,11 @@ Perfect for **IoT projects**, **headless Raspberry Pi setup**, and **embedded Wi
 
 1. **Install the package:**
    ```bash
-   sudo dpkg -i wifi-config-ap
+      64 bit 
+      sudo apt install /path/to/wifi-config-ap_<version>_arm64.deb
+
+      Older 32 bit
+      sudo apt install /path/to/wifi-config-ap_<version>_armhf.deb
    ```
 
 2. **Boot your Pi** - wifi-config-ap starts automatically when no internet connection is found
