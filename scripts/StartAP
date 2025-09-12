@@ -2,6 +2,7 @@
 
 # SSID="wifi-config-ap Netwerk"
 SSID=$(hostname | tr '[:lower:]' '[:upper:]')
+
 SHOW_HELP=0
 while [ "$1" ]; do
    case "$1" in
