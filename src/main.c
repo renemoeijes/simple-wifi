@@ -5,7 +5,7 @@
  * @brief wifi-config-ap main program and configuration
  * @author R. Moeijes
  * @date 2025  
- * @version 1.0.17
+ * @version 1.0.0
  * @copyright GPL v2+
  */
 

@@ -11,7 +11,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define WIFI_CONFIG_AP_VERSION "0.1.0"
+#define WIFI_CONFIG_AP_VERSION "1.0.0"
 
 /* Configuration structure for Gavotte */
 typedef struct {

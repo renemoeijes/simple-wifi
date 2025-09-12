@@ -5,7 +5,7 @@
  * @brief WiFi captive portal HTTP server using libmicrohttpd
  * @author R. Moeijes  
  * @date 2025
- * @version 1.0.17
+ * @version 1.0.0
  * @copyright GPL v2+
  */
 
