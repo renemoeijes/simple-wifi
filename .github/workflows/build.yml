@@ -1,0 +1,36 @@
+name: Build DEB Package
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [armhf, arm64]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      
+    - name: Build for ${{ matrix.arch }}
+      run: |
+        sudo apt update
+        sudo apt install -y qemu-user-static binfmt-support
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        docker run --rm -v $PWD:/workspace -w /workspace \
+          --platform linux/${{ matrix.arch }} \
+          debian:bookworm bash -c "
+          apt update && 
+          apt install -y build-essential debhelper devscripts &&
+          dpkg-buildpackage -us -uc -b"
+      
+    - name: Upload ${{ matrix.arch }} artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: deb-packages-${{ matrix.arch }}
+        path: ../*.deb
