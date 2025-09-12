@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+#!/bin/bash
+set -e
+
+# Check for wifi interface, it make no sense to install on a device without wifi.
+if ! iw dev 2>/dev/null | grep -q Interface; then
+    echo "Error: No wifi interface found. Aborting installation."
+    exit 1
+fi
+
+# Check for AP mode support, it make no sense to install on a device which does not suppor AP mode
+if ! iw list 2>/dev/null | grep -q "AP$"; then
+    echo "Error: Wifi module does not support Access Point mode. Aborting installation."
+    exit 1
+fi
+
+exit 0

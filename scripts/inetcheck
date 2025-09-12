@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# wifi-config-ap Network Connectivity Check
+# This script runs once at boot to check internet connectivity
+# If no internet is found, it starts the wifi-config-ap portal
+
+LOGFILE="/var/log/wifi-config-ap.log"
+PORTAL_SCRIPT="/usr/bin/StartAP"
+
+log_message() {
+    echo "$(date): $1" >> "$LOGFILE"
+}
+
+
+# Cleanup function to ensure clean state
+log_message "Cleaning up any leftover portal state..."
+# Stop any running p processes
+pkill -f "/usr/bin/wifi-config-ap" >/dev/null 2>&1 || true
+# Clean up configuration files
+rm -f /tmp/hostapd.conf >/dev/null 2>&1 || true
+rm -f /tmp/dnsmasq.conf >/dev/null 2>&1 || true
+rm -f /etc/NetworkManager/conf.d/99-wifi-config-ap-temp.conf 2>&1 || true
+# Ensure NetworkManager manages wlan0
+if command -v nmcli >/dev/null 2>&1; then
+   nmcli device set wlan0 managed yes >/dev/null 2>&1 || true
+   nmcli device set wlan0 autoconnect yes >/dev/null 2>&1 || true
+   nmcli connection delete "wifi-config-ap-test" >/dev/null 2>&1 || true
+fi
+log_message "Portal state cleanup completed"
+
+
+
+
+# Wait for network to be ready - but efficiently!
+log_message "Starting connectivity check..."
+echo "[*] Waiting for network interface to be ready..."
+
+# Instead of blind sleep 10, wait for wlan0 to be UP
+wait_count=0
+while [ $wait_count -lt 100 ]; do  # Max 10 seconds
+    if ip link show wlan0 | grep -q "state UP"; then
+        echo "[+] wlan0 is UP (waited ${wait_count}00ms)"
+        break
+    fi
+    sleep 0.1
+    wait_count=$((wait_count + 1))
+done
+
+# Check if we have internet connectivity - simple IPv4 test
+# Standard connectivity test to reliable public servers
+internet_found=false
+
+# Test reliable public DNS servers
+for server in 8.8.8.8 1.1.1.1 9.9.9.9; do
+    if ping -c 1 -W 3 "$server" >/dev/null 2>&1; then
+        log_message "Internet connectivity detected (ping to $server successful) - no portal needed"
+        internet_found=true
+        break
+    fi
+done
+
+# PARKED: Advanced DNS root server test (more robust but complex)
+# Uncomment if you want to use the DNS root server method instead:
+#
+# for s in a b c d e f g h i j k l m; do
+#     if getent hosts $s.root-servers.net >/dev/null 2>&1; then
+#         log_message "Internet connectivity detected (root server $s.root-servers.net reachable) - no portal needed"
+#         internet_found=true
+#         break
+#     fi
+# done
+
+if [ "$internet_found" = true ]; then
+   exit 0
+else
+   log_message "No internet connectivity (no root servers reachable) - starting Gavotte portal"
+    
+   # Start portal
+   if [ -x "$PORTAL_SCRIPT" ]; then
+      "$PORTAL_SCRIPT"
+      log_message "Portal started"
+   else
+      log_message "ERROR: Portal script not found at $PORTAL_SCRIPT"
+      exit 1
+   fi
+fi
+
+log_message "Connectivity check completed"
+exit 0

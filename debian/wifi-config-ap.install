@@ -1,0 +1,2 @@
+debian/wifi-config-ap.service lib/systemd/system
+resources/splash.html /etc/wifi-config-ap/htdocs/

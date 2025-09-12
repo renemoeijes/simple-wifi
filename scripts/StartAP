@@ -1,0 +1,395 @@
+#!/bin/sh
+
+# Optie -f: gebruik bestaand IP-adres van eth0 als fixed
+
+SHOW_HELP=0
+while [ "$1" ]; do
+   case "$1" in
+      -h|--help) SHOW_HELP=1 ;;
+   esac
+   shift
+done
+
+if [ "$SHOW_HELP" -eq 1 ]; then
+   echo "Gebruik: $0  [-h|--help]"
+   echo "  -h, --help Toon deze helptekst."
+   exit 0
+fi
+
+# SSL certificate generation has been removed as HTTPS is not in use.
+
+# IPv6 uitschakelen
+cat <<EOF > /tmp/sysctl.conf
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+EOF
+sysctl -p /tmp/sysctl.conf
+
+echo "[*] Stop oude processen..."
+systemctl stop hostapd 2>/dev/null
+systemctl stop dnsmasq 2>/dev/null
+killall hostapd dnsmasq 2>/dev/null
+ip link set wlan0 down 2>/dev/null
+
+# Benodigde pakketten
+REQUIRED_PKGS="hostapd dnsmasq iproute2 iw"
+for pkg in $REQUIRED_PKGS; do
+   if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+      echo "Pakket $pkg ontbreekt. Installeren..."
+      apt-get update
+      apt-get install -y "$pkg"
+   fi
+done
+
+# Check landcode/regio en stel in op NL
+if ! grep -q '^country_code=NL' /etc/hostapd/hostapd.conf 2>/dev/null; then
+   echo "country_code=NL" >> /etc/hostapd/hostapd.conf
+fi
+
+# Stop NetworkManager indien actief
+if systemctl is-active --quiet NetworkManager; then
+   echo "NetworkManager actief, stoppen..."
+   systemctl stop NetworkManager
+fi
+
+
+
+# --- Start Firewall Configuration ---
+echo "[*] Configuring firewall and NAT rules..."
+
+# Enable IP forwarding
+sysctl -w net.ipv4.ip_forward=1
+
+# Flush all existing rules and delete chains
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+
+# Set default policies
+iptables -P INPUT DROP
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+# --- FILTER TABLE ---
+# INPUT chain
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Allow management access on eth0
+iptables -A INPUT -i eth0 -p tcp --dport 22 -j ACCEPT # SSH
+iptables -A INPUT -i eth0 -p tcp --dport 445 -j ACCEPT # SMB
+
+# Allow client traffic on wlan0
+iptables -A INPUT -i wlan0 -p udp --dport 67:68 --sport 67:68 -j ACCEPT # DHCP
+iptables -A INPUT -i wlan0 -p udp --dport 53 -j ACCEPT # DNS
+iptables -A INPUT -i wlan0 -p tcp --dport 53 -j ACCEPT # DNS
+iptables -A INPUT -i wlan0 -p tcp --dport 2050 -j ACCEPT # Captive Portal
+
+# --- NAT TABLE ---
+# PREROUTING chain
+# This is the key rule: Intercept all HTTP traffic and send it to our local server.
+iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j DNAT --to-destination 192.168.4.1:2050
+
+# POSTROUTING chain
+# Enable NAT for outbound traffic on eth0
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+# --- End Firewall Configuration ---
+
+# Configureer eth0
+echo "Start dhclient op eth0..."
+# ip addr flush dev eth0
+
+
+if [ -f /sys/class/net/eth0/carrier ] && grep -q '^1$' /sys/class/net/eth0/carrier; then
+  ip link set eth0 up
+  dhclient -v eth0
+else
+  echo "No cable on eth0, skipping DHCP"
+fi
+
+
+
+# Verwijder oude configuratie
+rm -f /tmp/hostapd.conf /tmp/dnsmasq.conf
+
+# Genereer SSID met PID
+SSID="wifi-config-ap Netwerk"
+
+# Maak nieuwe hostapd config
+cat <<EOF > /tmp/hostapd.conf
+interface=wlan0
+ssid=$SSID
+hw_mode=g
+channel=6
+country_code=NL
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wmm_enabled=0
+EOF
+
+# Stel wlan0 in
+ip link set wlan0 up
+ip addr flush dev wlan0
+ip addr add 192.168.4.1/24 dev wlan0
+
+# Start hostapd
+hostapd /tmp/hostapd.conf -B
+
+# Maak nieuwe dnsmasq config
+# samsung require connectivitycheck.gstatic.com to be public address. !!
+cat <<EOF > /tmp/dnsmasq.conf
+interface=wlan0
+dhcp-range=192.168.4.10,192.168.4.50,255.255.255.0,24h
+dhcp-option=3,192.168.4.1
+dhcp-option=6,192.168.4.1
+dhcp-option=114,http://192.168.4.1/
+address=/#/123.123.123.123
+EOF
+
+
+
+ssid_scan() {
+   # Scan for SSIDs and check if we found any
+   scan_result=$(iw dev wlan0 scan 2>/dev/null | grep 'SSID:' | cut -d':' -f2 | grep -v '^$' | sort -u)
+      
+   if [ -z "$scan_result" ]; then
+      echo "[!] No WiFi networks found - retrying scan..." >&2
+      sleep 1
+      scan_result=$(iw dev wlan0 scan 2>/dev/null | grep 'SSID:' | cut -d':' -f2 | grep -v '^$' | sort -u)
+   fi
+      
+   if [ -z "$scan_result" ]; then
+      echo "[!] Still no WiFi networks found - returning empty list" >&2
+      echo "[]"
+      return
+   fi
+      
+   echo "["
+   echo "$scan_result" | while IFS= read -r ssid; do
+      ssid=$(echo "$ssid" | xargs)
+      [ -z "$ssid" ] && continue
+      escaped_ssid=$(echo "$ssid" | sed 's/"/\\"/g')
+      echo "\"$escaped_ssid\","
+   done | sed '$ s/,$//'
+   echo "]"
+}
+
+
+echo "[*] Starting WiFi scan..."
+WEBROOT="/etc/wifi-config-ap/htdocs"
+mkdir -p "$WEBROOT"
+ssid_scan > "$WEBROOT/wifi-networks.json" || echo "[]" > "$WEBROOT/wifi-networks.json"
+echo "[+] WiFi scan voltooid"
+
+
+
+# Start dnsmasq
+dnsmasq --conf-file=/tmp/dnsmasq.conf --no-resolv
+
+# Start wifi-config-ap web server in the foreground
+echo "[+] wifi-config-ap server start..."
+/usr/bin/wifi-config-ap
+
+echo "[+] wifi-config-ap server stopped. Cleaning up..."
+
+# Stop AP and DNS services
+systemctl stop hostapd
+systemctl stop dnsmasq
+killall hostapd dnsmasq 2>/dev/null
+
+# Flush all firewall rules
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+
+# Reset default policies
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+# Bring down the wireless interface
+ip link set wlan0 down
+
+# New connection checking and handling.
+
+configure_wifi() {
+   local ssid="$1"
+   local password="$2"
+   local NEW_PRIORITY=5
+   local old_priority=0
+
+
+   # Ensure any old temp connection is gone before we start.
+   nmcli connection delete "wifi-config-ap-test" >/dev/null 2>&1
+
+   echo "[*] Testing credentials for SSID: $ssid, PASS: $password"
+   # Attempt to create a temporary connection to validate credentials.
+#   if [ -n "$password" ]; then
+      # Network has a password
+      if ! nmcli device wifi connect "$ssid" password "$password" name "wifi-config-ap-test" >/dev/null 2>&1; then
+         echo "[-] Credentials for '$ssid' are invalid. Connection test failed."
+         nmcli connection delete "wifi-config-ap-test" >/dev/null 2>&1
+         return 1
+      fi
+   # else
+   #    # Network is open (no password)
+   #    if ! nmcli device wifi connect "$ssid" name "wifi-config-ap-test" >/dev/null 2>&1; then
+   #       echo "[-] Connection to open network '$ssid' failed."
+   #       nmcli connection delete "wifi-config-ap-test" >/dev/null 2>&1
+   #       return 1
+   #    fi
+   # fi
+
+
+   echo "[+] Credentials are valid, waiting for a working connection..."
+   IP=""
+   for i in $(seq 20)
+   do
+      IP=$(ip -4 addr show wlan0 | awk '/inet / {print $2}' | cut -d'/' -f1)
+      [ -n "$IP" ] && break
+      sleep 1
+   done
+   # Don't need this test connection anymore.
+   echo "[+] Deleting temporary connection and proceeding."
+   nmcli connection delete "wifi-config-ap-test" >/dev/null 2>&1
+   if [ -z "$IP" ]; then
+      echo "[-] Connection failed or no IP address was assigned within 20 seconds."
+      return 1
+   fi
+   echo "[+] Connection successful with IP: $IP"
+
+
+   echo "[*] Configuring WiFi: $ssid"
+
+
+   # Check if connection already exists and get its old priority
+   if nmcli connection show "$ssid" >/dev/null 2>&1; then
+      echo "[*] Connection '$ssid' exists, updating..."
+      old_priority=$(nmcli -t -f connection.autoconnect-priority connection show "$ssid" | cut -d: -f2)
+      # Default to 0 if priority isn't set or is invalid
+      if ! printf '%s' "$old_priority" | grep -Eq '^-?[0-9]+$'; then
+          old_priority=0
+      fi
+      
+      # Update password and set new priority
+      nmcli connection modify "$ssid" wifi-sec.psk "$password"
+      nmcli connection modify "$ssid" connection.autoconnect-priority $NEW_PRIORITY
+   else
+      echo "[*] Creating new connection '$ssid'..."
+      # A new connection has an effective old priority of 0
+      old_priority=0
+      # Create new connection with the new priority
+      nmcli device wifi connect "$ssid" password "$password" name "$ssid"
+      nmcli connection modify "$ssid" connection.autoconnect-priority $NEW_PRIORITY
+   fi
+    
+
+   # Lower priority of other connections intelligently
+   echo "[*] Adjusting priorities of other connections..."
+   # Get all wifi connections, filter out the one we just configured
+   nmcli -t -f NAME,TYPE connection show | grep ':wifi$' | cut -d: -f1 | grep -v "^$ssid$" | while read conn; do
+      current_priority=$(nmcli -t -f connection.autoconnect-priority connection show "$conn" | cut -d: -f2)
+      
+      # Only proceed if the connection has a numeric priority.
+      if [ -n "$current_priority" ] && [ "$current_priority" -gt 0 ]; then
+         
+         # If the promoted connection was new (old_priority=0), or if the current connection
+         # had a priority greater than the old priority of the promoted connection, we shift it down.
+         if [ "$old_priority" -eq 0 ] || [ "$current_priority" -gt "$old_priority" ]; then
+            new_priority=$((current_priority - 1))
+            nmcli connection modify "$conn" connection.autoconnect-priority $new_priority
+            echo "  $conn: $current_priority -> $new_priority"
+            
+            # Remove connections that are pushed off the list (priority <= 0)
+            if [ $new_priority -le 0 ]; then
+               echo "  Removing $conn (priority $new_priority)"
+               nmcli connection delete "$conn"
+            fi
+         fi
+      fi
+   done
+        
+   echo "[+] WiFi configuration complete"
+   return 0
+}
+
+# Extract ssid and password from the temp file
+if [ -f /tmp/wifi-config.txt ]; then
+   echo "[*] New WiFi configuration found. Applying..."
+   # Read SSID and password from the config file in a POSIX-compliant way.
+   {
+     read -r ssid
+     read -r password
+   } < /tmp/wifi-config.txt
+    
+   # Securely remove the temp file
+   rm /tmp/wifi-config.txt
+    
+   # Restart Network Manager and prevent autoconnect during configuration.
+   echo "[*] Restarting NetworkManager..."
+   TEMP_NM_CONF="/etc/NetworkManager/conf.d/99-wifi-config-ap-temp.conf"
+   
+   # The trap ensures the temporary file is ALWAYS removed, even if the script is interrupted.
+   trap 'rm -f "$TEMP_NM_CONF"' EXIT
+   
+   # Create a temporary config to stop wlan0 from autoconnecting immediately on restart.
+   # Using printf for portability, as `echo -e` is not reliable in all shells (e.g., dash).
+   printf "[device]\nmatch-device=interface-name:wlan0\nautoconnect=false" > "$TEMP_NM_CONF"
+   
+   # Restart the service. This command returns, but the service needs time to initialize.
+   systemctl restart NetworkManager
+   while ! nmcli -t general status >/dev/null 2>&1; do
+       sleep 0.1 # Wait a fraction of a second between checks.
+   done
+
+   # A very stupid test, and using the ssid retuned from application. Is not very robust.
+   echo "[*] Waiting for network '$ssid' to become visible..."
+   ATTEMPTS=0
+   MAX_ATTEMPTS=15
+   while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+      if nmcli -t -f SSID device wifi list | grep -q "^$ssid$"; then
+         echo "[+] Network '$ssid' is visible."
+         break
+      fi
+      sleep 1
+      ATTEMPTS=$((ATTEMPTS + 1))
+   done
+
+   if [ $ATTEMPTS -eq $MAX_ATTEMPTS ]; then
+      echo "[-] Network '$ssid' not found after $MAX_ATTEMPTS seconds. Aborting."
+      # Clean up and restart NM to a normal state
+      rm -f "$TEMP_NM_CONF"
+      trap - EXIT
+      systemctl restart NetworkManager
+      exit 1
+   fi
+
+   # Now that NM is ready and the network is visible, we can safely issue commands.
+   nmcli device set wlan0 autoconnect no
+   
+   # Clean up the temporary config file and remove the exit trap.
+   rm -f "$TEMP_NM_CONF"
+   trap - EXIT
+   
+   # Configure the new wifi connection
+   configure_wifi "$ssid" "$password"
+
+   # Just to be sure
+   # Allow NetworkManager to manage wlan0 again
+   nmcli device set wlan0 autoconnect yes
+
+else
+   echo "[*] No new WiFi configuration found. Proceeding with cleanup."
+   # Restart NetworkManager to resume normal network operations
+   echo "[*] Restarting NetworkManager..."
+   systemctl start NetworkManager
+fi
+
+echo "[+] Cleanup complete. System should reconnect to a known WiFi network."

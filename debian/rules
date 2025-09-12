@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+export CFLAGS += -flto
+export LDFLAGS += -flto -lmicrohttpd
+
+%:
+	dh $@ --with systemd
+
+override_dh_auto_build:
+	# Compile the C code in the src directory
+	$(MAKE) -C src
+
+override_dh_auto_clean:
+	# Clean up the compiled files in the src directory
+	$(MAKE) -C src clean
+
+override_dh_install:
+	# Install the compiled binary using the .install file
+	dh_install
+
+	# Install all scripts from the scripts/ directory into /usr/bin
+	install -d debian/wifi-config-ap/usr/bin
+	install -m 0755 scripts/* debian/wifi-config-ap/usr/bin/
+
+
