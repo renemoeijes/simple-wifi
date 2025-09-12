@@ -1,3 +1,4 @@
+git remote set-url origin git@github.com:renemoeijes/wifi-config-ap.git
 git config --global user.email "simpelmuis@gmail.com"
 git config --global user.name "Rene Moeijes"
 git init
