@@ -2,10 +2,10 @@
 PACKAGE="simple-wifi"
 # ruim de AI zooi maar weer op. Overal ^M's, maar als je er over klaagt moet 
 # eigen programma worden ingesteld, terwijl die al goed staat.
-find pkg/debian -type f -exec dos2unix {} +
+# find . -type f -exec dos2unix {} +
 
 # En voor andere AI aangemaakte textbestanden:
-find pkg -type f | while read f; do
+find . -type f | while read f; do
    if file "$f" | grep -q "script"; then
       dos2unix "$f"
    fi
