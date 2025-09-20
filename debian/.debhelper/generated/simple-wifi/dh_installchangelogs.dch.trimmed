@@ -1,4 +1,4 @@
-simple-wifi (1.0.0-1) unstable; urgency=low
+simple-wifi (1.0.0) stable; urgency=low
 
   * Version 1.0.0 release.
   * Hostname-based SSID generation.

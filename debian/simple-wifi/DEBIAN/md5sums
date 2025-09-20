@@ -2,5 +2,5 @@ eeb782df3723c9027b17746a24b05fa2  lib/systemd/system/simple-wifi.service
 f1d76be6668799bcad730940ac23e762  usr/bin/StartAP
 8d1fc4eefb09cebc26c79d74f39f0f96  usr/bin/inetcheck
 0dcaaeb26b87d349ec67a667b379f8f9  usr/bin/simple-wifi
-07c3035a6ac1e7afa647449c080da754  usr/share/doc/simple-wifi/changelog.Debian.gz
+6d208a03ed2ab486cfea7ecad28a689e  usr/share/doc/simple-wifi/changelog.gz
 f0ca6e2a01b29a2c40fb438da30c354b  usr/share/doc/simple-wifi/copyright
