@@ -12,8 +12,8 @@ find pkg -type f | while read f; do
 done
 
 
-# ARCH=$(dpkg --print-architecture)
-ARCH="all"  # scripts only, works on all 
+ARCH=$(dpkg --print-architecture)
+# ARCH="all"  # scripts only, works on all 
 # VERSION=$(grep '^Version:' /debian/control | awk '{print $2}')
 VERSION=$(dpkg-parsechangelog -S Version)
 
@@ -22,6 +22,10 @@ DATETIME=$(date +%Y%m%d-%H%M%S)
 # Make backup
 tar cf ../${PACKAGE}-${VERSION}_${ARCH}.${DATETIME}.tar  .
 printf "Building package ${PACKAGE}_${VERSION}_${ARCH}.deb\n"
+
+# build package and move it in right folder for rest of script.
 printf "[*] Bouwen (dpkg-buildpackage)...\n"
 dpkg-buildpackage -us -uc -b
+mv ../${PACKAGE}_${VERSION}_${ARCH}.deb .
+
 
