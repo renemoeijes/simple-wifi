@@ -6,7 +6,6 @@ Build-Depends: debhelper (>= 9), dpkg-dev (>= 1.16.1~), libmicrohttpd-dev (>= 0.
 Standards-Version: 3.9.6
 
 Package: simple-wifi
-Version: 1.0.0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libmicrohttpd12 (>= 0.9.51), hostapd, dnsmasq, iptables
 Description: simple-wifi WiFi Setup Portal by SimpleSoft

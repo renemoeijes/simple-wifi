@@ -6,7 +6,6 @@ Installed-Size: 116
 Depends: libc6 (>= 2.34), libmicrohttpd12 (>= 0.9.51), hostapd, dnsmasq, iptables
 Section: net
 Priority: optional
-Homepage: https://www.simplesoft.nl/simple-wifi
 Description: simple-wifi WiFi Setup Portal by SimpleSoft
  Simple and robust captive portal for WiFi configuration on Raspberry Pi.
  Designed for embedded devices that need easy WiFi setup without complex

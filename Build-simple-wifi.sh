@@ -14,8 +14,8 @@ done
 
 # ARCH=$(dpkg --print-architecture)
 ARCH="all"  # scripts only, works on all 
-VERSION=$(grep '^Version:' /debian/control | awk '{print $2}')
-
+# VERSION=$(grep '^Version:' /debian/control | awk '{print $2}')
+VERSION=$(dpkg-parsechangelog -S Version)
 
 # Make backup met datum-tijd in bestandsnaam
 DATETIME=$(date +%Y%m%d-%H%M%S)
