@@ -1,4 +1,4 @@
-# Makefile for wifi-config-ap
+# Makefile for simple-wifi
 
 # Compiler and flags
 CC      ?= gcc
@@ -6,7 +6,7 @@ CFLAGS  ?= -O2 -g -Wall -Isrc
 LDFLAGS ?= -lmicrohttpd
 
 # The final binary name
-TARGET = wifi-config-ap
+TARGET = simple-wifi
 
 # Source files
 SRCS = src/main.c src/http_server.c

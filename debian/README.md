@@ -1,5 +1,5 @@
 
-To create a Debian package of wifi-config-ap (a *.deb file),
+To create a Debian package of simple-wifi (a *.deb file),
 you first need to have installed the following programs and libraries:
 
 ```

@@ -3,7 +3,7 @@ CFLAGS=-Wall -g -std=c99
 LDFLAGS=-lmicrohttpd
 
 # Executable name
-TARGET=wifi-config-ap
+TARGET=simple-wifi
 
 # Source files
 SRCS = main.c http_server.c

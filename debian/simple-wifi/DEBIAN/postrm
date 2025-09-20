@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+    remove|purge)
+    # Remove all installed scripts and binaries
+    rm -f /usr/bin/simple-wifi
+    rm -f /usr/bin/connectivity-check
+
+    # Restore systemd-networkd-wait-online.service if it was disabled
+    echo "Herstellen van systemd-networkd-wait-online.service..."
+    sudo systemctl unmask systemd-networkd-wait-online.service
+    sudo systemctl enable systemd-networkd-wait-online.service
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,14 @@
+Package: simple-wifi
+Version: 1.0.0-1
+Architecture: arm64
+Maintainer: R. Moeijes <simpelmuis@gmail.com>
+Installed-Size: 116
+Depends: libc6 (>= 2.34), libmicrohttpd12 (>= 0.9.51), hostapd, dnsmasq, iptables
+Section: net
+Priority: optional
+Homepage: https://www.simplesoft.nl/simple-wifi
+Description: simple-wifi WiFi Setup Portal by SimpleSoft
+ Simple and robust captive portal for WiFi configuration on Raspberry Pi.
+ Designed for embedded devices that need easy WiFi setup without complex
+ authentication. Only start when no network is available.
+ SimpleSoft, easy to use tools without ApeSoft.

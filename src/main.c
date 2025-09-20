@@ -2,7 +2,7 @@
 // Copyright (C) 2025 R. Moeijes
 
 /** @file main.c
- * @brief wifi-config-ap main program and configuration
+ * @brief simple-wifi main program and configuration
  * @author R. Moeijes
  * @date 2025  
  * @version 1.0.0
@@ -22,11 +22,11 @@
 
 // Simple hardcoded config
 static s_config config = {
-    .configfile = "/etc/wifi-config-ap/wifi-config-ap.conf",
+    .configfile = "/etc/simple-wifi/simple-wifi.conf",
     .gw_name = "WiFi Setup Portal",
     .gw_interface = "wlan0", 
     .gw_port = 2050,
-    .webroot = "/etc/wifi-config-ap/htdocs",
+    .webroot = "/etc/simple-wifi/htdocs",
     .splashpage = "splash.html",
     .debuglevel = 0,
     .maxclients = 20,
@@ -44,7 +44,7 @@ static struct MHD_Daemon *webserver = NULL;
 
 // Clean exit function
 void termination_handler(int sig) {
-    printf("Shutting down wifi-config-ap...\n");
+    printf("Shutting down simple-wifi...\n");
     
     if (webserver) {
         MHD_stop_daemon(webserver);
@@ -62,17 +62,17 @@ int main(int argc, char **argv) {
     // Handle version/help
     if (argc > 1) {
         if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-            printf("wifi-config-ap %s\n", WIFI_CONFIG_AP_VERSION);
+            printf("simple-wifi %s\n", WIFI_CONFIG_AP_VERSION);
             return 0;
         }
         if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-            printf("wifi-config-ap %s - WiFi Captive Portal\n", WIFI_CONFIG_AP_VERSION);
+            printf("simple-wifi %s - WiFi Captive Portal\n", WIFI_CONFIG_AP_VERSION);
             printf("Usage: %s [-v|--version] [-h|--help]\n", argv[0]);
             return 0;
         }
     }
     
-    printf("Starting wifi-config-ap %s...\n", WIFI_CONFIG_AP_VERSION);
+    printf("Starting simple-wifi %s...\n", WIFI_CONFIG_AP_VERSION);
     
     // Setup signal handlers for clean exit
     signal(SIGTERM, termination_handler);
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     
-    printf("wifi-config-ap running! Press Ctrl+C to stop.\n");
+    printf("simple-wifi running! Press Ctrl+C to stop.\n");
     printf("Portal available at: http://%s/\n", config.gw_address);
     
     // HTTP daemon runs on its own threads - main() can just wait for termination signal

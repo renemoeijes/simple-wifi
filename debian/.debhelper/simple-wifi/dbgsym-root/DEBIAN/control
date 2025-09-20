@@ -1,0 +1,12 @@
+Package: simple-wifi-dbgsym
+Source: simple-wifi
+Version: 1.0.0-1
+Auto-Built-Package: debug-symbols
+Architecture: arm64
+Maintainer: R. Moeijes <simpelmuis@gmail.com>
+Installed-Size: 26
+Depends: simple-wifi (= 1.0.0-1)
+Section: debug
+Priority: optional
+Description: debug symbols for simple-wifi
+Build-Ids: dfebd0388c56fe8d460d0a8e677943df5833c969

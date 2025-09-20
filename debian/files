@@ -1,3 +1,3 @@
-wifi-config-ap-dbgsym_0.1.0_arm64.deb debug optional automatic=yes
-wifi-config-ap_0.1.0_arm64.buildinfo net optional
-wifi-config-ap_0.1.0_arm64.deb net optional
+simple-wifi-dbgsym_1.0.0-1_arm64.deb debug optional automatic=yes
+simple-wifi_1.0.0-1_arm64.buildinfo net optional
+simple-wifi_1.0.0-1_arm64.deb net optional

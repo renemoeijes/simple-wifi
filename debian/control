@@ -1,16 +1,15 @@
-Source: wifi-config-ap
+Source: simple-wifi
 Section: net
 Priority: optional
 Maintainer: R. Moeijes <simpelmuis@gmail.com>
-Uploaders: SimpleSoft <rene@simplesoft.nl>
 Build-Depends: debhelper (>= 9), dpkg-dev (>= 1.16.1~), libmicrohttpd-dev (>= 0.9.51)
 Standards-Version: 3.9.6
-Homepage: https://www.simplesoft.nl/wifi-config-ap
 
-Package: wifi-config-ap
+Package: simple-wifi
+Version: 1.0.0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libmicrohttpd12 (>= 0.9.51), hostapd, dnsmasq, iptables
-Description: wifi-config-ap WiFi Setup Portal by SimpleSoft
+Description: simple-wifi WiFi Setup Portal by SimpleSoft
  Simple and robust captive portal for WiFi configuration on Raspberry Pi.
  Designed for embedded devices that need easy WiFi setup without complex
  authentication. Only start when no network is available.

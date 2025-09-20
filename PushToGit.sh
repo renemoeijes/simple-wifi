@@ -5,5 +5,5 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin git@github.com:renemoeijes/wifi-config-ap.git
+git remote add origin git@github.com:renemoeijes/simple-wifi.git
 git push --force -u origin main

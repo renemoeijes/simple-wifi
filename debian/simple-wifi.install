@@ -1,0 +1,2 @@
+debian/simple-wifi.service lib/systemd/system
+resources/splash.html /etc/simple-wifi/htdocs/

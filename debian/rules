@@ -30,7 +30,7 @@ override_dh_install:
 	dh_install
 
 	# Install all scripts from the scripts/ directory into /usr/bin
-	install -d debian/wifi-config-ap/usr/bin
-	install -m 0755 scripts/* debian/wifi-config-ap/usr/bin/
+	install -d debian/simple-wifi/usr/bin
+	install -m 0755 scripts/* debian/simple-wifi/usr/bin/
 
 

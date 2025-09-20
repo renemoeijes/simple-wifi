@@ -1,0 +1,12 @@
+simple-wifi (1.0.0-1) unstable; urgency=low
+
+  * Version 1.0.0 release.
+  * Hostname-based SSID generation.
+
+ -- R. Moeijes <simpelmuis@gmail.com>  Thu, 12 Sep 2025 12:00:00 +0000
+
+simple-wifi (0.1.0-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- R. Moeijes <simpelmuis@gmail.com>  Mon, 08 Sep 2025 12:00:00 +0000

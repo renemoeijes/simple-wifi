@@ -1,0 +1,20 @@
+[Unit]
+Description=simple-wifi Network Discovery Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/inetcheck
+User=root
+Group=root
+WorkingDirectory=/home/pi/
+RemainAfterExit=yes
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

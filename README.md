@@ -1,8 +1,8 @@
-# wifi-config-ap
+# simple-wifi
 
 **Simple WiFi Setup Portal for Raspberry Pi | Captive Portal | IoT WiFi Configuration**
 
-wifi-config-ap is a minimal, high-performance **captive portal** designed specifically for **WiFi setup on Raspberry Pi** devices. 
+simple-wifi is a minimal, high-performance **captive portal** designed specifically for **WiFi setup on Raspberry Pi** devices. 
 Perfect for **IoT projects**, **headless Raspberry Pi setup**, and **embedded WiFi configuration**.
 
 🚀 **Just connect to the Access Point and configure WiFi - no SSH, no keyboard needed!**
@@ -22,15 +22,15 @@ Perfect for **IoT projects**, **headless Raspberry Pi setup**, and **embedded Wi
 1. **Install the package:**
    ```bash
       64 bit 
-      sudo apt install /path/to/wifi-config-ap_<version>_arm64.deb
+      sudo apt install /path/to/simple-wifi_<version>_arm64.deb
 
       Older 32 bit
-      sudo apt install /path/to/wifi-config-ap_<version>_armhf.deb
+      sudo apt install /path/to/simple-wifi_<version>_armhf.deb
    ```
 
-2. **Boot your Pi** - wifi-config-ap starts automatically when no internet connection is found
+2. **Boot your Pi** - simple-wifi starts automatically when no internet connection is found
 
-3. **Connect to "wifi-config-ap Netwerk" WiFi** with your phone/computer - setup page appears automatically
+3. **Connect to "simple-wifi Netwerk" WiFi** with your phone/computer - setup page appears automatically
 
 4. **Enter your WiFi credentials** - portal stops automatically and Pi connects to your network
 
@@ -55,8 +55,8 @@ sudo make install
 
 ### Complete Build from GitHub
 ```bash
-git clone https://github.com/renemoeijes/wifi-config-ap.git
-cd wifi-config-ap
+git clone https://github.com/renemoeijes/simple-wifi.git
+cd simple-wifi
 make clean
 make
 sudo make install
@@ -64,21 +64,21 @@ sudo make install
 
 ### Building Debian Package
 ```bash
-git clone https://github.com/renemoeijes/wifi-config-ap.git
-cd wifi-config-ap
+git clone https://github.com/renemoeijes/simple-wifi.git
+cd simple-wifi
 dpkg-buildpackage -b
 ```
-This creates a `.deb` package in the parent directory that you can install with `sudo dpkg -i wifi-config-ap_*.deb`.
+This creates a `.deb` package in the parent directory that you can install with `sudo dpkg -i simple-wifi_*.deb`.
 
 ## About
 
-wifi-config-ap is designed with usability as goal. To provide a simple solution for frustrating problems.
+simple-wifi is designed with usability as goal. To provide a simple solution for frustrating problems.
 In this case for connecting a rpi to a wifi ssid. With no network connection, and no keyboard monitor this is always challenging.
 So my solution is, when there is no internet, the device start it's own Access Point with SSID. When you connect your phone or computer to this network, the setup page start automatically, and you only need to select the network name (ssid) and enter the password for this network (ssid). 
 So Simple !
 
 **Author:** R. Moeijes  
 **License:** GPL v2+  
-**Project:** wifi-config-ap - SimpleSoft solutions
+**Project:** simple-wifi - SimpleSoft solutions
 
 ---

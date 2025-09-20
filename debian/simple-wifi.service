@@ -1,5 +1,5 @@
 [Unit]
-Description=wifi-config-ap Network Discovery Service
+Description=simple-wifi Network Discovery Service
 Wants=network-online.target
 After=network-online.target
 

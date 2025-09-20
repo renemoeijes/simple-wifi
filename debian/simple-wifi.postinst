@@ -8,7 +8,7 @@ case "$1" in
          # Zorg dat systemd unit nieuw geladen wordt
          systemctl daemon-reload >/dev/null 2>&1 || true
          # Enable en start de service direct (no-fail, idempotent)
-         systemctl enable --now wifi-config-ap.service >/dev/null 2>&1 || true
+         systemctl enable --now simple-wifi.service >/dev/null 2>&1 || true
          
          # Ensure hostapd is available and unmasked
          echo "Configureren hostapd service..."
@@ -42,7 +42,7 @@ case "$1" in
                   ;;
             esac
          fi
-         echo "wifi-config-ap installed successfully"
+         echo "simple-wifi installed successfully"
       fi
       ;;
 esac

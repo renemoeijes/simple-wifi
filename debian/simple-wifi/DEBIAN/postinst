@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+   configure)
+      if command -v systemctl >/dev/null 2>&1; then
+         # Zorg dat systemd unit nieuw geladen wordt
+         systemctl daemon-reload >/dev/null 2>&1 || true
+         # Enable en start de service direct (no-fail, idempotent)
+         systemctl enable --now simple-wifi.service >/dev/null 2>&1 || true
+         
+         # Ensure hostapd is available and unmasked
+         echo "Configureren hostapd service..."
+         echo "Unmasking hostapd.service..."
+         systemctl unmask hostapd.service
+         
+         # Ensure hostapd is enabled but not started (portal scripts will manage it)
+         systemctl enable hostapd.service >/dev/null 2>&1 || true
+         
+         # Enable connectivity check service for automatic portal startup
+         echo "Enabling connectivity check service..."
+         systemctl enable connectivity-check.service >/dev/null 2>&1 || true
+         
+         # check if systemd-networkd-wait-online.service is installed and enabled
+         #if command -v systemctl >/dev/null 2>&1 \
+         #   && systemctl list-unit-files --type=service | grep -q '^systemd-networkd-wait-online.service'; then
+         if command -v systemctl >/dev/null 2>&1 && \
+            systemctl is-enabled systemd-networkd-wait-online.service > /dev/null 2>&1 ; then
+            printf '\nDisabling the systemd-networkd-wait-online.service may reduce boot time by approximately two minutes or more.\n'
+            printf 'The portal will then start within about one (1) minute instead of three (3) minutes. Do you want to disable this service? [Y/n] '
+            read antwoord
+            case "$antwoord" in
+               ''|Y|y)
+                  printf "Disabling and masking systemd-networkd-wait-online (saves 2+ minutes)...\n"
+                  systemctl disable --now systemd-networkd-wait-online.service
+                  systemctl stop systemd-networkd-wait-online.service
+                  systemctl mask systemd-networkd-wait-online.service
+                  ;;
+               *)
+                  # user chose no — do nothing
+                  ;;
+            esac
+         fi
+         echo "simple-wifi installed successfully"
+      fi
+      ;;
+esac
+
+exit 0
