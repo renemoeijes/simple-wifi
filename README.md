@@ -1,9 +1,12 @@
 # simple-wifi
 
 This is part of a whole concept: 
-Simple-wifi -> wifi ssid setup via phone.
-Simple-bt   -> Play bluetooth
-Simple-spot -> Play spotify
+- Simple-wifi -> wifi ssid setup via phone.
+- Simple-bt   -> Play bluetooth
+- Simple-spot -> Play spotify
+
+Link to website:
+https://renemoeijes.github.io/simple-wifi/
 
 To install All:
 
