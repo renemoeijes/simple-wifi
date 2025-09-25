@@ -1,5 +1,13 @@
 # simple-wifi
 
+This is part of a whole concept: 
+Simple-wifi -> wifi ssid setup via phone.
+Simple-bt   -> Play bluetooth
+Simple-spot -> Play spotify
+
+To install All:
+
+
 **Simple WiFi Setup Portal for Raspberry Pi | Captive Portal | IoT WiFi Configuration**
 
 simple-wifi is a minimal, high-performance **captive portal** designed specifically for **WiFi setup on Raspberry Pi** devices. 
