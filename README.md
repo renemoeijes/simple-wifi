@@ -8,7 +8,8 @@ This is part of a whole concept:
 Link to website:
 https://renemoeijes.github.io/simple-wifi/
 
-To install All:
+Install All Script:
+https://raw.githubusercontent.com/renemoeijes/simple-wifi/main/Simple-Install.sh
 
 
 **Simple WiFi Setup Portal for Raspberry Pi | Captive Portal | IoT WiFi Configuration**
